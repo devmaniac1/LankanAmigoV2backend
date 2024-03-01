@@ -11,6 +11,7 @@ const mongoDB = `mongodb+srv://lankanamigo:${process.env.DATABASE_PASSWORD}@clus
 
 const Accommodation = require("./models/Accommodation.js");
 const AccommodationDetail = require("./models/AccommodationDetail.js");
+const GoogleHotel = require("./models/GoogleHotel.js");
 
 const googleMapsClient = new Client();
 app.use(express.json());
@@ -153,6 +154,58 @@ app.get("/nearby", async (req, res) => {
     .then((res) => res.json())
     .then((json) => console.log(json))
     .catch((err) => console.error("error:" + err));
+});
+
+app.get("/Google-hotels", async (req, res) => {
+  // const { location, checkIn, checkOut, adults } = req.query;
+  const location = "ella";
+  const checkIn = "2024-03-02";
+  const checkOut = "2024-03-05";
+  const adults = "2";
+  try {
+    const url = `https://serpapi.com/search.json?engine=google_hotels&q=${location}+hotels&check_in_date=${checkIn}&check_out_date=${checkOut}&adults=${adults}}&currency=USD&gl=lk&hl=en&key=${process.env.SERPAPIKEY}`;
+    const options = { method: "GET", headers: { accept: "application/json" } };
+
+    const response = await fetch(url, options);
+    const jsonData = await response.json();
+
+    const googleHotels = [];
+
+    for (const property of jsonData.properties) {
+      const accommodationName = property.name;
+      console.log(accommodationName);
+      const existingAccommodation = await GoogleHotel.findOne({
+        accommodationName,
+      });
+      if (!existingAccommodation) {
+        googleHotels.push({
+          location: jsonData.search_parameters.q.split(" ")[0],
+          name: property.name,
+          url: property.link,
+          long: property.gps_coordinates.longitude,
+          lat: property.gps_coordinates.latitude,
+          price:
+            property.total_rate && property.total_rate.lowest
+              ? property.total_rate.lowest
+              : 0,
+          ratings: property.overall_rating,
+          reviews: property.reviews,
+          amenities: property.amenities,
+          essentialInfo: property.essential_info,
+        });
+      }
+    }
+    if (googleHotels.length > 0) {
+      await GoogleHotel.insertMany(googleHotels);
+    }
+    res.json(jsonData);
+  } catch (error) {
+    console.log(`Error fetching Data: ${error}`);
+  }
+});
+
+app.get("/events", async (req, res) => {
+  const url = ``;
 });
 
 const PORT = process.env.PORT || 3002;
