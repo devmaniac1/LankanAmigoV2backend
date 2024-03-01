@@ -9,6 +9,9 @@ dotenv.config({ path: "./config.env" });
 
 const mongoDB = `mongodb+srv://lankanamigo:${process.env.DATABASE_PASSWORD}@cluster.2yzcprp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster`;
 
+const Accommodation = require("./models/Accommodation.js");
+const AccommodationDetail = require("./models/AccommodationDetail.js");
+
 const googleMapsClient = new Client();
 app.use(express.json());
 
@@ -54,9 +57,27 @@ app.get("/get-accomodations", async (req, res) => {
     // }));
 
     // await Accommodation.insertMany(accommodations);
-    
+    const accommodations = [];
+    for (const data of jsonData.data) {
+      const locationId = data.location_id;
 
-    res.json(jsonData);
+      const existingAccommodation = await Accommodation.findOne({ locationId });
+      if (!existingAccommodation) {
+        accommodations.push({
+          locationId,
+          name: data.name,
+          distance: data.distance,
+          city: data.address_obj.city,
+          address: data.address_obj.address_string,
+        });
+      }
+    }
+
+    if (accommodations.length > 0) {
+      await Accommodation.insertMany(accommodations);
+    }
+
+    res.json(accommodations);
   } catch (error) {
     console.error("Error fetching accommodations:", error);
     res.status(500).json({ error: "Failed to fetch accommodations" });
@@ -74,10 +95,37 @@ app.get("/get-accomodations-details", async (req, res) => {
   const response = await fetch(url, options);
   const jsonData = await response.json();
 
- 
+  const accommodationDetail = [];
+
+  const existingAccommodation = await AccommodationDetail.findOne({
+    locationId,
+  });
+  if (!existingAccommodation) {
+    accommodationDetail.push({
+      locationId,
+      name: jsonData.name,
+      webURL: jsonData.web_url,
+      city: jsonData.address_obj.city,
+      address: jsonData.address_obj.address_string,
+      long: jsonData.longitude,
+      lat: jsonData.latitude,
+      rating: jsonData.rating,
+      reviewsNo: jsonData.num_reviews,
+      amenities: jsonData.amenities,
+    });
+  }
+
+  if (accommodationDetail.length > 0) {
+    await AccommodationDetail.insertMany(accommodationDetail);
+    console.log("Added");
+  }
+
   res.json(jsonData);
 
- 
+  fetch(url, options)
+    .then((res) => res.json())
+    .then((json) => console.log(json))
+    .catch((err) => console.error("error:" + err));
 });
 
 app.get("/get-accomodations-photo", async (req, res) => {
@@ -85,6 +133,20 @@ app.get("/get-accomodations-photo", async (req, res) => {
   const locationId = "19847553";
   const apiKey = process.env.TRIPADVISORAPI;
   const url = `https://api.content.tripadvisor.com/api/v1/location/${locationId}/photos?key=${apiKey}&language=en&limit=5`;
+  const options = { method: "GET", headers: { accept: "application/json" } };
+
+  fetch(url, options)
+    .then((res) => res.json())
+    .then((json) => console.log(json))
+    .catch((err) => console.error("error:" + err));
+});
+
+app.get("/nearby", async (req, res) => {
+  // const {locationId} = req.query;
+  const locationId = "19847553";
+
+  const url =
+    "https://maps.googleapis.com/maps/api/place/nearbysearch/json?keyword=hotel&location=-33.8670522%2C151.1957362&radius=1500&type=hotel&key=AIzaSyBkePZHNAeceiSPlP4LuZIPd28NpBJcaF8";
   const options = { method: "GET", headers: { accept: "application/json" } };
 
   fetch(url, options)
@@ -109,3 +171,8 @@ mongoose
   .catch((error) => {
     console.log(error);
   });
+
+// const PORT = process.env.PORT || 3001;
+// app.listen(PORT, () => {
+//   console.log(`Server is running on port ${PORT}`);
+// });
