@@ -12,6 +12,7 @@ const mongoDB = `mongodb+srv://lankanamigo:${process.env.DATABASE_PASSWORD}@clus
 const Accommodation = require("./models/Accommodation.js");
 const AccommodationDetail = require("./models/AccommodationDetail.js");
 const GoogleHotel = require("./models/GoogleHotel.js");
+const GoogleEvents = require("./models/Events.js");
 
 const googleMapsClient = new Client();
 app.use(express.json());
@@ -205,7 +206,33 @@ app.get("/Google-hotels", async (req, res) => {
 });
 
 app.get("/events", async (req, res) => {
-  const url = ``;
+  try {
+    const url = `https://serpapi.com/search.json?htichips=date:today&engine=google_events&q=Events+in+Kandy&hl=en&gl=lk&api_key=${process.env.SERPAPIKEY}`;
+    const options = { method: "GET", headers: { accept: "application/json" } };
+
+    const response = await fetch(url, options);
+    const jsonData = await response.json();
+
+    const events = [];
+
+    for (const event of jsonData.events_results) {
+      events.push({
+        name: event.title,
+        date: event.date,
+        address: event.address,
+        location: event.event_location_map,
+        description: event.description,
+        ticket: event.ticket_info,
+        thumbnail: event.thumbnail,
+      });
+    }
+    if (events.length > 0) {
+      await GoogleEvents.insertMany(events);
+    }
+    res.json(jsonData);
+  } catch (error) {
+    console.log(`Error fetching Data: ${error}`);
+  }
 });
 
 const PORT = process.env.PORT || 3002;
