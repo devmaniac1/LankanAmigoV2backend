@@ -1,10 +1,12 @@
 const express = require("express");
+const cors = require("cors");
 const mongoose = require("mongoose");
 const fetch = require("node-fetch");
 const dotenv = require("dotenv");
 const { Client } = require("@googlemaps/google-maps-services-js");
 
 const app = express();
+app.use(cors());
 dotenv.config({ path: "./config.env" });
 
 const mongoDB = `mongodb+srv://lankanamigo:${process.env.DATABASE_PASSWORD}@cluster.2yzcprp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster`;
@@ -145,10 +147,9 @@ app.get("/get-accomodations-photo", async (req, res) => {
 
 app.get("/nearby", async (req, res) => {
   // const {locationId} = req.query;
-  const locationId = "19847553";
+  const longLat = "6.9497%2C80.7891";
 
-  const url =
-    "https://maps.googleapis.com/maps/api/place/nearbysearch/json?keyword=hotel&location=-33.8670522%2C151.1957362&radius=1500&type=hotel&key=AIzaSyBkePZHNAeceiSPlP4LuZIPd28NpBJcaF8";
+  const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?keyword=places+to+visit&location=${longLat}&radius=1500&type=tourist_attraction&key=${process.env.GOOGLEAPI}`;
   const options = { method: "GET", headers: { accept: "application/json" } };
 
   fetch(url, options)
@@ -159,12 +160,13 @@ app.get("/nearby", async (req, res) => {
 
 app.get("/Google-hotels", async (req, res) => {
   // const { location, checkIn, checkOut, adults } = req.query;
+  const { toLocation } = req.query;
   const location = "ella";
-  const checkIn = "2024-03-02";
-  const checkOut = "2024-03-05";
+  const checkIn = "2024-03-04";
+  const checkOut = "2024-03-07";
   const adults = "2";
   try {
-    const url = `https://serpapi.com/search.json?engine=google_hotels&q=${location}+hotels&check_in_date=${checkIn}&check_out_date=${checkOut}&adults=${adults}}&currency=USD&gl=lk&hl=en&key=${process.env.SERPAPIKEY}`;
+    const url = `https://serpapi.com/search.json?engine=google_hotels&q=${toLocation}+hotels&check_in_date=${checkIn}&check_out_date=${checkOut}&adults=${adults}&currency=USD&gl=lk&hl=en&key=${process.env.SERPAPIKEY}`;
     const options = { method: "GET", headers: { accept: "application/json" } };
 
     const response = await fetch(url, options);
@@ -174,7 +176,7 @@ app.get("/Google-hotels", async (req, res) => {
 
     for (const property of jsonData.properties) {
       const accommodationName = property.name;
-      console.log(accommodationName);
+      // console.log(accommodationName);
       const existingAccommodation = await GoogleHotel.findOne({
         accommodationName,
       });
@@ -232,6 +234,22 @@ app.get("/events", async (req, res) => {
     res.json(jsonData);
   } catch (error) {
     console.log(`Error fetching Data: ${error}`);
+  }
+});
+
+app.get("/places", async (req, res) => {
+  try {
+    const { toLocation } = req.query;
+    // console.log(toLocation);
+    const location = "ella";
+    const url = `https://serpapi.com/search.json?engine=google&q=places+to+visit+in+${toLocation}&num=30&key=${process.env.SERPAPIKEY}`;
+    const options = { method: "GET", headers: { accept: "application/json" } };
+
+    const response = await fetch(url, options);
+    const jsonData = await response.json();
+    res.json(jsonData);
+  } catch (error) {
+    console.log(error);
   }
 });
 
