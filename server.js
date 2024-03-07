@@ -159,11 +159,11 @@ app.get("/nearby", async (req, res) => {
 });
 
 app.get("/Google-hotels", async (req, res) => {
-  // const { location, checkIn, checkOut, adults } = req.query;
+  const { location, checkIn, checkOut} = req.query;
   const { toLocation } = req.query;
-  const location = "ella";
-  const checkIn = "2024-03-04";
-  const checkOut = "2024-03-07";
+  // const location = "ella";
+  // const checkIn = "2024-03-04";
+  // const checkOut = "2024-03-07";
   const adults = "2";
   try {
     const url = `https://serpapi.com/search.json?engine=google_hotels&q=${toLocation}+hotels&check_in_date=${checkIn}&check_out_date=${checkOut}&adults=${adults}&currency=USD&gl=lk&hl=en&key=${process.env.SERPAPIKEY}`;
