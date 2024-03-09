@@ -160,47 +160,51 @@ app.get("/nearby", async (req, res) => {
 
 app.get("/Google-hotels", async (req, res) => {
   // const { location, checkIn, checkOut, adults } = req.query;
-  const { toLocation, toDate, fromDate } = req.query;
+  const { toLocation, toDate, fromDate, budget } = req.query;
   const location = "ella";
   const checkIn = "2024-03-04";
   const checkOut = "2024-03-07";
   const adults = "2";
   try {
-    const url = `https://serpapi.com/search.json?engine=google_hotels&q=${toLocation}+hotels&check_in_date=${fromDate}&check_out_date=${toDate}&adults=${adults}&currency=USD&gl=lk&hl=en&key=${process.env.SERPAPIKEY}`;
+    console.log(typeof budget);
+    const url = `https://serpapi.com/search.json?engine=google_hotels&q=${toLocation}+hotels&check_in_date=${fromDate}&check_out_date=${toDate}&adults=${adults}&currency=USD&gl=lk&hl=en&max_price=${budget}&key=${process.env.SERPAPIKEY}`;
     const options = { method: "GET", headers: { accept: "application/json" } };
 
     const response = await fetch(url, options);
     const jsonData = await response.json();
 
     const googleHotels = [];
-
-    for (const property of jsonData.properties) {
-      const accommodationName = property.name;
-      // console.log(accommodationName);
-      const existingAccommodation = await GoogleHotel.findOne({
-        accommodationName,
-      });
-      if (!existingAccommodation) {
-        googleHotels.push({
-          location: jsonData.search_parameters.q.split(" ")[0],
-          name: property.name,
-          url: property.link,
-          long: property.gps_coordinates.longitude,
-          lat: property.gps_coordinates.latitude,
-          price:
-            property.total_rate && property.total_rate.lowest
-              ? property.total_rate.lowest
-              : 0,
-          ratings: property.overall_rating,
-          reviews: property.reviews,
-          amenities: property.amenities,
-          essentialInfo: property.essential_info,
+    if (jsonData.properties) {
+      for (const property of jsonData.properties) {
+        const accommodationName = property.name;
+        // console.log(accommodationName);
+        const existingAccommodation = await GoogleHotel.findOne({
+          accommodationName,
         });
+        if (!existingAccommodation) {
+          googleHotels.push({
+            location: jsonData.search_parameters.q.split(" ")[0],
+            name: property.name,
+            url: property.link,
+            long: property.gps_coordinates.longitude,
+            lat: property.gps_coordinates.latitude,
+            price:
+              property.total_rate && property.total_rate.lowest
+                ? property.total_rate.lowest
+                : 0,
+            ratings: property.overall_rating,
+            reviews: property.reviews,
+            amenities: property.amenities,
+            essentialInfo: property.essential_info,
+          });
+        }
       }
     }
+
     if (googleHotels.length > 0) {
       await GoogleHotel.insertMany(googleHotels);
     }
+    console.log(jsonData);
     res.json(jsonData);
   } catch (error) {
     console.log(`Error fetching Data: ${error}`);
@@ -242,7 +246,7 @@ app.get("/places", async (req, res) => {
     const { toLocation } = req.query;
     // console.log(toLocation);
     const location = "ella";
-    const url = `https://serpapi.com/search.json?engine=google&q=places+to+visit+in+${toLocation}&num=30&key=${process.env.SERPAPIKEY}`;
+    const url = `https://serpapi.com/search.json?engine=google&q=places+to+visit+in+${toLocation}&key=${process.env.SERPAPIKEY}`;
     const options = { method: "GET", headers: { accept: "application/json" } };
 
     const response = await fetch(url, options);
