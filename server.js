@@ -159,11 +159,8 @@ app.get("/nearby", async (req, res) => {
 });
 
 app.get("/Google-hotels", async (req, res) => {
-  // const { location, checkIn, checkOut, adults } = req.query;
   const { toLocation, toDate, fromDate, budget } = req.query;
-  const location = "ella";
-  const checkIn = "2024-03-04";
-  const checkOut = "2024-03-07";
+
   const adults = "2";
   try {
     console.log(typeof budget);
