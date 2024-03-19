@@ -8,6 +8,7 @@ const userRouter = require("./routes/userRoutes");
 const googleRouter = require("./routes/googleRoutes");
 const tripadvisorRouter = require("./routes/tripAdvisorRoutes");
 const serpRouter = require("./routes/serpRoutes");
+const globalErrorHandler = require("./controllers/errorController");
 
 const app = express();
 
@@ -32,6 +33,8 @@ app.get("/", (req, res) => {
     portD: PORT,
   });
 });
+
+app.use(globalErrorHandler);
 
 mongoose
   .connect(mongoDB)
