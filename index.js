@@ -10,6 +10,9 @@ const tripadvisorRouter = require("./routes/tripAdvisorRoutes");
 const serpRouter = require("./routes/serpRoutes");
 const globalErrorHandler = require("./controllers/errorController");
 
+const BusFare = require("./models/BusFare");
+const catchAsync = require("./utils/catchAsync");
+
 const app = express();
 
 app.use(cors());
@@ -33,6 +36,20 @@ app.get("/", (req, res) => {
     portD: PORT,
   });
 });
+
+app.get(
+  "/busFare",
+  catchAsync(async (req, res) => {
+    // const RouteNumber = "99-10";
+    const { RouteNumber } = req.query;
+    // console.log(RouteNumber);
+    const busFares = await BusFare.find({ RouteNumber: RouteNumber });
+    res.json(busFares);
+    // busFares.forEach((busFare) => {
+    //   busFare.RouteNumber === routeNumber && res.json(busFare);
+    // });
+  })
+);
 
 app.use(globalErrorHandler);
 
