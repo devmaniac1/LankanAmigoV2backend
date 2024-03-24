@@ -1,5 +1,6 @@
 const GoogleHotel = require("./../models/GoogleHotel");
 const Events = require("./../models/Events");
+const { json } = require("express");
 
 exports.getHotels = async (req, res) => {
   const { toLocation, toDate, fromDate, budget } = req.query;
@@ -87,7 +88,8 @@ function getDateDifference(targetDate) {
 exports.getEvents = async (req, res) => {
   try {
     const { toLocation, fromDate } = req.query;
-    const difference = getDateDifference(specificDate);
+    const difference = getDateDifference(fromDate);
+    console.log(difference);
     const url = `https://serpapi.com/search.json?htichips=date:${difference}&engine=google_events&q=Events+in+${toLocation}&hl=en&gl=lk&api_key=${process.env.SERPAPIKEY}`;
     const options = { method: "GET", headers: { accept: "application/json" } };
 
@@ -95,21 +97,22 @@ exports.getEvents = async (req, res) => {
     const jsonData = await response.json();
 
     const events = [];
+    console.log(toLocation, fromDate, jsonData);
 
-    for (const event of jsonData.events_results) {
-      events.push({
-        name: event.title,
-        date: event.date,
-        address: event.address,
-        location: event.event_location_map,
-        description: event.description,
-        ticket: event.ticket_info,
-        thumbnail: event.thumbnail,
-      });
-    }
-    if (events.length > 0) {
-      await Events.insertMany(events);
-    }
+    // for (const event of jsonData.events_results) {
+    //   events.push({
+    //     name: event.title,
+    //     date: event.date,
+    //     address: event.address,
+    //     location: event.event_location_map,
+    //     description: event.description,
+    //     ticket: event.ticket_info,
+    //     thumbnail: event.thumbnail,
+    //   });
+    // }
+    // if (events.length > 0) {
+    //   await Events.insertMany(events);
+    // }
     res.json(jsonData);
   } catch (error) {
     console.log(`Error fetching Data: ${error}`);

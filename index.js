@@ -60,14 +60,11 @@ app.get("/", (req, res) => {
 app.get(
   "/busFare",
   catchAsync(async (req, res) => {
-    // const RouteNumber = "99-10";
     const { StopFare } = req.query;
-    // console.log(RouteNumber);
-    const busFares = await BusFare.find({ StopFare });
+
+    const busFares = await BusStopFare.find({ StopFare });
+
     res.json(busFares);
-    // busFares.forEach((busFare) => {
-    //   busFare.RouteNumber === routeNumber && res.json(busFare);
-    // });
   })
 );
 
