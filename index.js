@@ -16,6 +16,7 @@ const serpRouter = require("./routes/serpRoutes");
 const globalErrorHandler = require("./controllers/errorController");
 
 const BusFare = require("./models/BusFare");
+const BusStopFare = require("./models/BusStopFare");
 const catchAsync = require("./utils/catchAsync");
 
 const app = express();
@@ -36,7 +37,7 @@ app.use(bodyParser.json());
 app.use(express.json());
 
 app.use(mongoSanitize());
-app.use(xss()); 
+app.use(xss());
 
 dotenv.config({ path: "./config.env" });
 
@@ -60,9 +61,9 @@ app.get(
   "/busFare",
   catchAsync(async (req, res) => {
     // const RouteNumber = "99-10";
-    const { RouteNumber } = req.query;
+    const { StopFare } = req.query;
     // console.log(RouteNumber);
-    const busFares = await BusFare.find({ RouteNumber: RouteNumber });
+    const busFares = await BusFare.find({ StopFare });
     res.json(busFares);
     // busFares.forEach((busFare) => {
     //   busFare.RouteNumber === routeNumber && res.json(busFare);
