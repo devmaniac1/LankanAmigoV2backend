@@ -6,7 +6,7 @@ exports.getHotels = async (req, res) => {
 
   const adults = "2";
   try {
-    console.log(typeof budget);
+    // console.log(typeof budget);
     const url = `https://serpapi.com/search.json?engine=google_hotels&q=${toLocation}+hotels&check_in_date=${fromDate}&check_out_date=${toDate}&adults=${adults}&currency=USD&gl=lk&hl=en&max_price=${budget}&key=${process.env.SERPAPIKEY}`;
     const options = { method: "GET", headers: { accept: "application/json" } };
 
@@ -44,7 +44,7 @@ exports.getHotels = async (req, res) => {
     if (googleHotels.length > 0) {
       await GoogleHotel.insertMany(googleHotels);
     }
-    console.log(jsonData);
+    // console.log(jsonData);
     res.json(jsonData);
   } catch (error) {
     console.log(`Error fetching Data: ${error}`);
@@ -67,10 +67,28 @@ exports.getPlaces = async (req, res) => {
   }
 };
 
+function getDateDifference(targetDate) {
+  const target = new Date(targetDate);
+
+  const now = new Date();
+
+  const difference = target.getTime() - now.getTime();
+
+  const daysDifference = Math.ceil(difference / (1000 * 3600 * 24));
+
+  if (daysDifference == 1) return "tomorrow";
+  if (daysDifference <= 7) return "week";
+  if (daysDifference <= 14) return "next_week";
+  if (daysDifference >= 30) return "month";
+  if (daysDifference <= 60) return "next_month";
+  return daysDifference;
+}
+
 exports.getEvents = async (req, res) => {
   try {
-    const { toLocation } = req.query;
-    const url = `https://serpapi.com/search.json?htichips=date:today&engine=google_events&q=Events+in+${toLocation}&hl=en&gl=lk&api_key=${process.env.SERPAPIKEY}`;
+    const { toLocation, fromDate } = req.query;
+    const difference = getDateDifference(specificDate);
+    const url = `https://serpapi.com/search.json?htichips=date:${difference}&engine=google_events&q=Events+in+${toLocation}&hl=en&gl=lk&api_key=${process.env.SERPAPIKEY}`;
     const options = { method: "GET", headers: { accept: "application/json" } };
 
     const response = await fetch(url, options);
