@@ -54,12 +54,19 @@ exports.createUser = (req, res) => {
     data: req.body,
   });
 };
-exports.getUser = (req, res) => {
-  res.status(200).json({
-    status: req.query,
-    stat: "ok",
-  });
-};
+exports.getUser = CatchAsync(async (req, res) => {
+  const userId = req.params.id; // Retrieve the user ID from the request parameters
+
+  // Query the database for the user information using the user ID
+  const user = await User.findById(userId);
+
+  if (!user) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
+  // Send the user information as a response
+  res.status(200).json({ user });
+});
 exports.updateUser = (req, res) => {
   res.status(200).json({
     status: "posting database",
@@ -70,3 +77,23 @@ exports.deleteUser = (req, res) => {
     status: "posting database",
   });
 };
+
+exports.user = CatchAsync(async (req, res) => {
+  console.log("working");
+  const token = req.headers.authorization.split(" ")[1];
+  console.log(token); // Assuming the token is in the "Authorization" header
+  const decoded = jwtDecode(token);
+
+  console.log(decoded); // Assuming the user ID is stored in the token as "userId"
+  const userId = decoded.userId;
+
+  // Query the database for the user information using the user ID
+  const user = await User.findById(userId);
+
+  if (!user) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
+  // Send the user information as a response
+  res.status(200).json({ user });
+});
