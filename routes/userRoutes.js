@@ -29,4 +29,8 @@ router
   .patch(userController.updateUser)
   .delete(userController.deleteUser);
 
+router
+  .route("/users/:userId/days")
+  .patch(authController.protect, userController.savePlan);
+
 module.exports = router;

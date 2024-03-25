@@ -33,6 +33,11 @@ const limiter = rateLimit({
 app.use("/api", limiter);
 
 app.use(cors());
+app.use(
+  cors({
+    origin: ["http://localhost:3000", "https://lankanamigo.vercel.app/"],
+  })
+);
 app.use(bodyParser.json());
 app.use(express.json());
 
